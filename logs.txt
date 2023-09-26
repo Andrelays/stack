@@ -1,258 +1,308 @@
 stack[0x606000000020]
 "stk" from main.cpp(19) int main(int, const char**)
-called from main.cpp(31) int main(int, const char**)
-{
-	left_canary = 100 (reference_value = 100)
-	size = 9
-	capacity = 16
-	data[0x608000000028]
-	right_canary = 200 (reference_value = 200)
-	{
-		[left_canary] = 700 (reference_value = 700)
-		[0] =0
-		[1] =1
-		[2] =2
-		[3] =3
-		[4] =4
-		[5] =5
-		[6] =6
-		[7] =7
-		[8] =8
-		[9] =192 (POISON)
-		[10] =192 (POISON)
-		[11] =192 (POISON)
-		[12] =192 (POISON)
-		[13] =192 (POISON)
-		[14] =192 (POISON)
-		[15] =192 (POISON)
-	}
-}
-
-stack[0x606000000020]
-"stk" from main.cpp(19) int main(int, const char**)
-called from main.cpp(31) int main(int, const char**)
-{
-	left_canary = 100 (reference_value = 100)
-	size = 8
-	capacity = 16
-	data[0x608000000028]
-	right_canary = 200 (reference_value = 200)
-	{
-		[left_canary] = 700 (reference_value = 700)
-		[0] =0
-		[1] =1
-		[2] =2
-		[3] =3
-		[4] =4
-		[5] =5
-		[6] =6
-		[7] =7
-		[8] =192 (POISON)
-		[9] =192 (POISON)
-		[10] =192 (POISON)
-		[11] =192 (POISON)
-		[12] =192 (POISON)
-		[13] =192 (POISON)
-		[14] =192 (POISON)
-		[15] =192 (POISON)
-	}
-}
-
-stack[0x606000000020]
-"stk" from main.cpp(19) int main(int, const char**)
-called from main.cpp(31) int main(int, const char**)
-{
-	left_canary = 100 (reference_value = 100)
-	size = 7
-	capacity = 16
-	data[0x608000000028]
-	right_canary = 200 (reference_value = 200)
-	{
-		[left_canary] = 700 (reference_value = 700)
-		[0] =0
-		[1] =1
-		[2] =2
-		[3] =3
-		[4] =4
-		[5] =5
-		[6] =6
-		[7] =192 (POISON)
-		[8] =192 (POISON)
-		[9] =192 (POISON)
-		[10] =192 (POISON)
-		[11] =192 (POISON)
-		[12] =192 (POISON)
-		[13] =192 (POISON)
-		[14] =192 (POISON)
-		[15] =192 (POISON)
-	}
-}
-
-stack[0x606000000020]
-"stk" from main.cpp(19) int main(int, const char**)
-called from main.cpp(31) int main(int, const char**)
-{
-	left_canary = 100 (reference_value = 100)
-	size = 6
-	capacity = 16
-	data[0x608000000028]
-	right_canary = 200 (reference_value = 200)
-	{
-		[left_canary] = 700 (reference_value = 700)
-		[0] =0
-		[1] =1
-		[2] =2
-		[3] =3
-		[4] =4
-		[5] =5
-		[6] =192 (POISON)
-		[7] =192 (POISON)
-		[8] =192 (POISON)
-		[9] =192 (POISON)
-		[10] =192 (POISON)
-		[11] =192 (POISON)
-		[12] =192 (POISON)
-		[13] =192 (POISON)
-		[14] =192 (POISON)
-		[15] =192 (POISON)
-	}
-}
-
-stack[0x606000000020]
-"stk" from main.cpp(19) int main(int, const char**)
-called from main.cpp(31) int main(int, const char**)
-{
-	left_canary = 100 (reference_value = 100)
-	size = 5
-	capacity = 16
-	data[0x608000000028]
-	right_canary = 200 (reference_value = 200)
-	{
-		[left_canary] = 700 (reference_value = 700)
-		[0] =0
-		[1] =1
-		[2] =2
-		[3] =3
-		[4] =4
-		[5] =192 (POISON)
-		[6] =192 (POISON)
-		[7] =192 (POISON)
-		[8] =192 (POISON)
-		[9] =192 (POISON)
-		[10] =192 (POISON)
-		[11] =192 (POISON)
-		[12] =192 (POISON)
-		[13] =192 (POISON)
-		[14] =192 (POISON)
-		[15] =192 (POISON)
-	}
-}
-
-stack[0x606000000020]
-"stk" from main.cpp(19) int main(int, const char**)
-called from main.cpp(31) int main(int, const char**)
-{
-	left_canary = 100 (reference_value = 100)
-	size = 4
-	capacity = 16
-	data[0x608000000028]
-	right_canary = 200 (reference_value = 200)
-	{
-		[left_canary] = 700 (reference_value = 700)
-		[0] =0
-		[1] =1
-		[2] =2
-		[3] =3
-		[4] =192 (POISON)
-		[5] =192 (POISON)
-		[6] =192 (POISON)
-		[7] =192 (POISON)
-		[8] =192 (POISON)
-		[9] =192 (POISON)
-		[10] =192 (POISON)
-		[11] =192 (POISON)
-		[12] =192 (POISON)
-		[13] =192 (POISON)
-		[14] =192 (POISON)
-		[15] =192 (POISON)
-	}
-}
-
-stack[0x606000000020]
-"stk" from main.cpp(19) int main(int, const char**)
-called from main.cpp(31) int main(int, const char**)
-{
-	left_canary = 100 (reference_value = 100)
-	size = 3
-	capacity = 8
-	data[0x606000000148]
-	right_canary = 200 (reference_value = 200)
-	{
-		[left_canary] = 700 (reference_value = 700)
-		[0] =0
-		[1] =1
-		[2] =2
-		[3] =192 (POISON)
-		[4] =192 (POISON)
-		[5] =192 (POISON)
-		[6] =192 (POISON)
-		[7] =192 (POISON)
-	}
-}
-
-stack[0x606000000020]
-"stk" from main.cpp(19) int main(int, const char**)
-called from main.cpp(31) int main(int, const char**)
-{
-	left_canary = 100 (reference_value = 100)
-	size = 2
-	capacity = 8
-	data[0x606000000148]
-	right_canary = 200 (reference_value = 200)
-	{
-		[left_canary] = 700 (reference_value = 700)
-		[0] =0
-		[1] =1
-		[2] =192 (POISON)
-		[3] =192 (POISON)
-		[4] =192 (POISON)
-		[5] =192 (POISON)
-		[6] =192 (POISON)
-		[7] =192 (POISON)
-	}
-}
-
-stack[0x606000000020]
-"stk" from main.cpp(19) int main(int, const char**)
-called from main.cpp(31) int main(int, const char**)
+called from main.cpp(24) int main(int, const char**)
 {
 	left_canary = 100 (reference_value = 100)
 	size = 1
-	capacity = 4
-	data[0x604000000058]
+	capacity = 1
+	data[0x603000000078]
 	right_canary = 200 (reference_value = 200)
 	{
-		[left_canary] = 700 (reference_value = 700)
-		[0] =0
-		[1] =192 (POISON)
-		[2] =192 (POISON)
-		[3] =192 (POISON)
+		 [left_canary] = 700 (reference_value = 700) [0x603000000070]
+		*[0] =1 [0x603000000078]
+		 [right_canary] = 900 (reference_value = 900) [0x603000000080]
 	}
 }
 
 stack[0x606000000020]
 "stk" from main.cpp(19) int main(int, const char**)
-called from main.cpp(31) int main(int, const char**)
+called from main.cpp(28) int main(int, const char**)
 {
 	left_canary = 100 (reference_value = 100)
-	size = 0
+	size = 2
 	capacity = 2
-	data[0x603000000138]
+	data[0x603000000108]
 	right_canary = 200 (reference_value = 200)
 	{
-		[left_canary] = 700 (reference_value = 700)
-		[0] =192 (POISON)
-		[1] =192 (POISON)
+		 [left_canary] = 700 (reference_value = 700) [0x603000000100]
+		*[0] =1 [0x603000000108]
+		*[1] =1 [0x60300000010c]
+		 [right_canary] = 900 (reference_value = 900) [0x603000000118]
 	}
+}
+
+stack[0x606000000020]
+"stk" from main.cpp(19) int main(int, const char**)
+called from main.cpp(32) int main(int, const char**)
+{
+	left_canary = 100 (reference_value = 100)
+	size = 3
+	capacity = 4
+	data[0x604000000018]
+	right_canary = 200 (reference_value = 200)
+	{
+		 [left_canary] = 700 (reference_value = 700) [0x604000000010]
+		*[0] =1 [0x604000000018]
+		*[1] =1 [0x60400000001c]
+		*[2] =1 [0x604000000020]
+		 [3] =192 (POISON) [0x604000000024]
+		 [right_canary] = 900 (reference_value = 900) [0x604000000030]
+	}
+}
+
+stack[0x606000000020]
+"stk" from main.cpp(19) int main(int, const char**)
+called from main.cpp(36) int main(int, const char**)
+{
+	left_canary = 100 (reference_value = 100)
+	size = 4
+	capacity = 4
+	data[0x604000000018]
+	right_canary = 200 (reference_value = 200)
+	{
+		 [left_canary] = 700 (reference_value = 700) [0x604000000010]
+		*[0] =1 [0x604000000018]
+		*[1] =1 [0x60400000001c]
+		*[2] =1 [0x604000000020]
+		*[3] =1 [0x604000000024]
+		 [right_canary] = 900 (reference_value = 900) [0x604000000030]
+	}
+}
+
+stk
+{
+	[0] =1
+	[1] =1
+	[2] =192 (POISON)
+	[3] =192 (POISON)
+}
+
+stk
+{
+	[0] =192 (POISON)
+	[1] =192 (POISON)
+}
+
+stk
+{
+	[0] =192 (POISON)
+	[1] =192 (POISON)
+}
+
+stk
+{
+	[0] =192 (POISON)
+	[1] =192 (POISON)
+}
+
+stk
+{
+	[0] =192 (POISON)
+	[1] =192 (POISON)
+}
+
+stk
+{
+	[0] =192 (POISON)
+	[1] =192 (POISON)
+}
+
+stk
+{
+	[0] =192 (POISON)
+	[1] =192 (POISON)
+}
+
+stk
+{
+	[0] =192 (POISON)
+	[1] =192 (POISON)
+}
+
+stk
+{
+	[0] =192 (POISON)
+	[1] =192 (POISON)
+}
+
+stk
+{
+	[0] =192 (POISON)
+	[1] =192 (POISON)
+}
+
+stk
+{
+	[0] =192 (POISON)
+	[1] =192 (POISON)
+}
+
+stk
+{
+	[0] =192 (POISON)
+	[1] =192 (POISON)
+}
+
+stk
+{
+	[0] =192 (POISON)
+	[1] =192 (POISON)
+}
+
+stk
+{
+	[0] =192 (POISON)
+	[1] =192 (POISON)
+}
+
+stk
+{
+	[0] =192 (POISON)
+	[1] =192 (POISON)
+}
+
+stk
+{
+	[0] =192 (POISON)
+	[1] =192 (POISON)
+}
+
+stk
+{
+	[0] =192 (POISON)
+	[1] =192 (POISON)
+}
+
+stk
+{
+	[0] =192 (POISON)
+	[1] =192 (POISON)
+}
+
+stk
+{
+	[0] =192 (POISON)
+	[1] =192 (POISON)
+}
+
+stk
+{
+	[0] =192 (POISON)
+	[1] =192 (POISON)
+}
+
+stk_1
+{
+	[0] =0
+}
+
+stk_1
+{
+	[0] =0
+	[1] =1
+}
+
+stk_1
+{
+	[0] =0
+	[1] =1
+	[2] =2
+	[3] =192 (POISON)
+}
+
+stk_1
+{
+	[0] =0
+	[1] =1
+	[2] =2
+	[3] =3
+}
+
+stk_1
+{
+	[0] =0
+	[1] =1
+	[2] =2
+	[3] =3
+	[4] =4
+	[5] =192 (POISON)
+	[6] =192 (POISON)
+	[7] =192 (POISON)
+}
+
+stk_1
+{
+	[0] =0
+	[1] =1
+	[2] =2
+	[3] =3
+	[4] =4
+	[5] =5
+	[6] =192 (POISON)
+	[7] =192 (POISON)
+}
+
+stk_1
+{
+	[0] =0
+	[1] =1
+	[2] =2
+	[3] =3
+	[4] =4
+	[5] =5
+	[6] =6
+	[7] =192 (POISON)
+}
+
+stk_1
+{
+	[0] =0
+	[1] =1
+	[2] =2
+	[3] =3
+	[4] =4
+	[5] =5
+	[6] =6
+	[7] =7
+}
+
+stk_1
+{
+	[0] =0
+	[1] =1
+	[2] =2
+	[3] =3
+	[4] =4
+	[5] =5
+	[6] =6
+	[7] =7
+	[8] =8
+	[9] =192 (POISON)
+	[10] =192 (POISON)
+	[11] =192 (POISON)
+	[12] =192 (POISON)
+	[13] =192 (POISON)
+	[14] =192 (POISON)
+	[15] =192 (POISON)
+}
+
+stk_1
+{
+	[0] =0
+	[1] =1
+	[2] =2
+	[3] =3
+	[4] =4
+	[5] =5
+	[6] =6
+	[7] =7
+	[8] =8
+	[9] =9
+	[10] =192 (POISON)
+	[11] =192 (POISON)
+	[12] =192 (POISON)
+	[13] =192 (POISON)
+	[14] =192 (POISON)
+	[15] =192 (POISON)
 }
 

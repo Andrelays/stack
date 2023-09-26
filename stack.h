@@ -28,9 +28,6 @@ do {                                                    \
         return stk->error_code;                         \
 } while(0)
 
-#define POISON                      192
-#define INITIAL_CAPACITY_VALUE      1 //TODO use consts instead of defines
-#define CAPACITY_MULTIPLIER         2
 #define FORMAT_SPECIFIERS_STACK   "%d"
 
 typedef int TYPE_ELEMENT_STACK;
@@ -40,6 +37,9 @@ const canary_t value_left_canary_stack  = 100;
 const canary_t value_right_canary_stack = 200;
 const canary_t value_left_canary_array  = 700;
 const canary_t value_right_canary_array = 900;
+const ssize_t  CAPACITY_MULTIPLIER      = 2;
+const ssize_t  INITIAL_CAPACITY_VALUE   = 1;
+const int      POISON                   = 192;
 
 
 enum errors_code_stack {
@@ -87,6 +87,8 @@ ssize_t verify_stack(stack *stk);
 ssize_t check_capacity(stack *stk);
 
 void stack_dump(stack *stk, ssize_t line, const char *file, const char *func, FILE *logs_pointer);
+void stack_ok(stack *stk, FILE *logs_pointer);
+
 void print_debug_info(stack *stk, ssize_t line, const char *file, const char *func, FILE *logs_pointer);
 
 void print_errors(stack *stk, FILE *logs_pointer);
@@ -95,7 +97,7 @@ FILE *check_isopen (const char *file_name, const char *opening_mode);
 bool check_isclose (FILE *file_pointer);
 
 ssize_t realloc_data(stack *stk); // TODO hide from publick interface: move to cpp + make static
-canary_t *get_pointer_left_canary(TYPE_ELEMENT_STACK *data);
+canary_t *get_pointer_left_canary(stack *stk);
 canary_t *get_pointer_right_canary(stack *stk);
 size_t get_size_data (stack *stk);
 

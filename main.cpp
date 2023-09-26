@@ -19,22 +19,37 @@ int main(int argc, const char *argv[])
     STACK_CONSTRUCTOR(stk);
     STACK_CONSTRUCTOR(stk_1);
 
-    for (TYPE_ELEMENT_STACK index = 0; index < 10; index++)
-    {
-        if (push(stk, index))
-            STACK_DUMP(stk, logs_pointer);
-    }
+    push(stk, 1);
+
+    STACK_DUMP(stk, logs_pointer);
+
+    push(stk, 1);
+
+    STACK_DUMP(stk, logs_pointer);
+
+    push(stk, 1);
+
+    STACK_DUMP(stk, logs_pointer);
+    
+    push(stk, 1);
+
+    STACK_DUMP(stk, logs_pointer);
+
 
     for (TYPE_ELEMENT_STACK index = 0; index < 20; index++)
     {
-        if (pop(stk, &return_value) != 32)
+        if (pop(stk, &return_value) != 32 && pop(stk, &return_value) != 0)
             STACK_DUMP(stk, logs_pointer);
+
+        stack_ok(stk, logs_pointer);
     }
 
     for (TYPE_ELEMENT_STACK index = 0; index < 10; index++)
     {
         if (push(stk_1, index))
             STACK_DUMP(stk_1, logs_pointer);
+
+        stack_ok(stk_1, logs_pointer);
     }
 
     MYASSERT(check_isclose (logs_pointer), COULD_NOT_CLOSE_THE_FILE , return COULD_NOT_CLOSE_THE_FILE);

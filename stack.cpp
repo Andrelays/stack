@@ -14,6 +14,8 @@ ssize_t stack_constructor(stack *stk)
 
     stk->data = (TYPE_ELEMENT_STACK *) (array + 1);
 
+    *get_pointer_right_canary(stk) = value_right_canary_array;
+
     stk->size = 0;
 
     return (verify_stack(stk));
@@ -23,13 +25,13 @@ ssize_t stack_destructor(stack *stk)
 {
     CHECK_ERRORS(stk);
 
-    memset(stk->data, POISON, stk->capacity);
+    memset(stk->data, POISON, stk->capacity - 1);
 
     stk->size = -1;
     stk->capacity = -1;
 
     free(stk->info);
-    free(get_pointer_left_canary(stk->data));
+    free(get_pointer_left_canary(stk));
     free(stk);
 
     return NO_ERROR;
@@ -80,7 +82,8 @@ ssize_t verify_stack(stack *stk)
     SUMMARIZE_ERRORS_(stk->size     < 0,                                                SIZE_LESS_THAN_ZERO);
     SUMMARIZE_ERRORS_(stk->left_canary  != value_left_canary_stack,                     LEFT_CANARY_IN_STACK_CHANGED);
     SUMMARIZE_ERRORS_(stk->right_canary != value_right_canary_stack,                    RIGHT_CANARY_IN_STACK_CHANGED);
-    SUMMARIZE_ERRORS_(*get_pointer_left_canary(stk->data) != value_left_canary_array,   LEFT_CANARY_IN_ARRAY_CHANGED);
+    SUMMARIZE_ERRORS_(*get_pointer_left_canary(stk)  != value_left_canary_array,        LEFT_CANARY_IN_ARRAY_CHANGED);
+    SUMMARIZE_ERRORS_(*get_pointer_right_canary(stk) != value_right_canary_array,       RIGHT_CANARY_IN_ARRAY_CHANGED);
 
     #undef SUMMARIZE_ERRORS_
 
@@ -93,7 +96,7 @@ ssize_t check_capacity(stack *stk)
 
     if (stk->size >= stk->capacity)
     {
-        stk->capacity *= CAPACITY_MULTIPLIER;
+        stk->capacity *= CAPACITY_MULTIPLIER;//TODO ERROR CAPACITY
 
         realloc_data(stk);
 
@@ -107,6 +110,21 @@ ssize_t check_capacity(stack *stk)
 
         realloc_data(stk);
     }
+
+    return (verify_stack(stk));
+}
+
+ssize_t realloc_data(stack *stk)
+{
+    MYASSERT(stk          != NULL, NULL_POINTER_PASSED_TO_FUNC, return POINTER_TO_STACK_IS_NULL);
+    MYASSERT(stk->data    != NULL, NULL_POINTER_PASSED_TO_FUNC, return POINTER_TO_STACK_DATA_IS_NULL);
+
+    canary_t *array = (canary_t *) realloc(get_pointer_left_canary(stk), get_size_data (stk));
+    MYASSERT(array != NULL, FAILED_TO_ALLOCATE_DYNAM_MEMOR, return 0);
+
+    stk->data = (TYPE_ELEMENT_STACK *) (array + 1);
+
+    *get_pointer_right_canary(stk) = value_right_canary_array;
 
     return (verify_stack(stk));
 }
@@ -125,15 +143,39 @@ void stack_dump(stack *stk, ssize_t line, const char *file, const char *func, FI
     for (ssize_t index = 0; index < stk->capacity; index++)
     {
         if ((stk->data)[index] == POISON)
-            fprintf(logs_pointer, "\t\t[%ld] =" FORMAT_SPECIFIERS_STACK " (POISON)\n", index, POISON);
+            fprintf(logs_pointer, "\t\t [%ld] =" FORMAT_SPECIFIERS_STACK " (POISON) [%p]\n", index, POISON, stk->data + index);
 
         else
-            fprintf(logs_pointer, "\t\t[%ld] =" FORMAT_SPECIFIERS_STACK "\n", index, (stk->data)[index]);
+            fprintf(logs_pointer, "\t\t*[%ld] =" FORMAT_SPECIFIERS_STACK " [%p]\n", index, (stk->data)[index], stk->data + index);
     }
 
-    fprintf(logs_pointer,   "\t}\n"
-                            "}\n\n");
+    fprintf(logs_pointer,   "\t\t [right_canary] = %lld (reference_value = %lld) [%p]\n"
+                            "\t}\n"
+                            "}\n\n",
+                *(get_pointer_right_canary(stk)), value_right_canary_array, get_pointer_right_canary(stk));
 
+}
+
+void stack_ok(stack *stk, FILE *logs_pointer)
+{
+    MYASSERT(stk          != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+    MYASSERT(stk->data    != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+    MYASSERT(logs_pointer != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+
+    fprintf(logs_pointer,   "%s\n"
+                            "{\n",
+                        stk->info->name);
+
+    for (ssize_t index = 0; index < stk->capacity; index++)
+    {
+        if ((stk->data)[index] == POISON)
+            fprintf(logs_pointer, "\t[%ld] =" FORMAT_SPECIFIERS_STACK " (POISON)\n", index, POISON);
+
+        else
+            fprintf(logs_pointer, "\t[%ld] =" FORMAT_SPECIFIERS_STACK "\n", index, (stk->data)[index]);
+    }
+
+    fprintf(logs_pointer, "}\n\n");
 }
 
 void print_debug_info(stack *stk, ssize_t line, const char *file, const char *func, FILE *logs_pointer)
@@ -153,10 +195,10 @@ void print_debug_info(stack *stk, ssize_t line, const char *file, const char *fu
                             "\tdata[%p]\n"
                             "\tright_canary = %lld (reference_value = %lld)\n"
                             "\t{\n"
-                            "\t\t[left_canary] = %lld (reference_value = %lld)\n",
+                            "\t\t [left_canary] = %lld (reference_value = %lld) [%p]\n",
             stk, stk->info->name, stk->info->file, stk->info->line, stk->info->func,
             file, line, func, stk->left_canary, value_left_canary_stack, stk->size, stk->capacity, stk->data, stk->right_canary,
-            value_right_canary_stack, *(get_pointer_left_canary(stk->data)), value_left_canary_array);
+            value_right_canary_stack, *(get_pointer_left_canary(stk)), value_left_canary_array, get_pointer_left_canary(stk));
 }
 
 FILE *check_isopen (const char *file_name, const char *opening_mode)
@@ -203,30 +245,21 @@ void print_errors(stack *stk, FILE *logs_pointer)
    GET_ERRORS_(LEFT_CANARY_IN_STACK_CHANGED);
    GET_ERRORS_(RIGHT_CANARY_IN_STACK_CHANGED);
    GET_ERRORS_(LEFT_CANARY_IN_ARRAY_CHANGED);
+   GET_ERRORS_(RIGHT_CANARY_IN_ARRAY_CHANGED);
+
 
    #undef GET_ERRORS_
 }
 
-ssize_t realloc_data(stack *stk)
+
+canary_t *get_pointer_left_canary(stack *stk)
 {
-    CHECK_ERRORS(stk);
-
-    canary_t *array = (canary_t *) realloc(get_pointer_left_canary(stk->data), get_size_data (stk));
-    MYASSERT(array != NULL, FAILED_TO_ALLOCATE_DYNAM_MEMOR, return 0);
-
-    stk->data = (TYPE_ELEMENT_STACK *) (array + 1);
-
-    return (verify_stack(stk));
-}
-
-canary_t *get_pointer_left_canary(TYPE_ELEMENT_STACK *data)//TODO stack *stk
-{
-    return (((canary_t *) data) - 1);
+    return (((canary_t *) stk->data) - 1);
 }
 
 canary_t *get_pointer_right_canary(stack *stk)
 {
-    return ((canary_t *) (((char *) get_pointer_left_canary(stk->data)) + get_size_data(stk) - sizeof(canary_t)));
+    return ((canary_t *) (((char *) get_pointer_left_canary(stk)) + get_size_data(stk) - sizeof(canary_t)));
 }
 
 size_t get_size_data(stack *stk)
