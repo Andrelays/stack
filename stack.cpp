@@ -5,11 +5,11 @@
 
 #ifdef INCREASED_LEVEL_OF_PROTECTION
 
-    #define ASSSERT_CHANGING_STACK_HASH(...)   __VA_ARGS__
+    #define ON_INCREASED_LEVEL_OF_PROTECTION(...)   __VA_ARGS__
 
 #else
 
-    #define ASSSERT_CHANGING_STACK_HASH(...)    ;
+    #define ON_INCREASED_LEVEL_OF_PROTECTION(...)
 
 #endif
 
@@ -43,6 +43,17 @@
     #define IF_ON_STACK_OK(...)
 
 #endif
+
+#define CHECK_ERRORS(stk)                                       \
+do {                                                            \
+    if (((stk)->error_code = verify_stack(stk)) != NO_ERROR)    \
+        return (stk)->error_code;                               \
+} while(0)
+
+IF_ON_CANARY_PROTECT (const canary_t VALUE_LEFT_CANARY_STACK  = 0xDEDDAD);
+IF_ON_CANARY_PROTECT (const canary_t VALUE_RIGHT_CANARY_STACK = 0xDEDBED);
+IF_ON_CANARY_PROTECT (const canary_t VALUE_LEFT_CANARY_ARRAY  = 0xDEDDED);
+IF_ON_CANARY_PROTECT (const canary_t VALUE_RIGHT_CANARY_ARRAY = 0xDEDBAD);
 
 static ssize_t verify_stack(stack *stk);
 
@@ -254,7 +265,7 @@ ssize_t verify_stack(stack *stk)
     MYASSERT(stk->data    != NULL, NULL_POINTER_PASSED_TO_FUNC, return POINTER_TO_STACK_DATA_IS_NULL);
     MYASSERT(stk->info    != NULL, NULL_POINTER_PASSED_TO_FUNC, return POINTER_TO_STACK_INFO_IS_NULL);
 
-    ASSSERT_CHANGING_STACK_HASH(MYASSERT(!check_stack_hash(stk), HASH_HAS_BEEN_CHANGED, return STACK_HASH_CHANGED));
+    ON_INCREASED_LEVEL_OF_PROTECTION(MYASSERT(check_stack_hash(stk), HASH_HAS_BEEN_CHANGED, return STACK_HASH_CHANGED));
 
     ssize_t error_code = NO_ERROR;
 
@@ -420,8 +431,7 @@ IF_ON_STACK_OK
                                      "{\n",
                             stk->info->name);
 
-        for (ssize_t index = 0; index < stk->capacity; index++)
-            if ((stk->data)[index] != POISON)
+        for (ssize_t index = 0; index < stk->size; index++)
                 fprintf(stk->logs_pointer, "\t[%ld] = " FORMAT_SPECIFIERS_STACK "\n", index, (stk->data)[index]);
 
         fprintf(stk->logs_pointer, "}\n\n");

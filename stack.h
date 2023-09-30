@@ -18,12 +18,6 @@ do {                                                                            
     stack_constructor(stk);                                                             \
 } while(0)
 
-#define CHECK_ERRORS(stk)                                       \
-do {                                                            \
-    if (((stk)->error_code = verify_stack(stk)) != NO_ERROR)    \
-        return (stk)->error_code;                               \
-} while(0)
-
 #ifdef CANARY_PROTECT_INCLUDED
 
     typedef long long canary_t;
@@ -51,11 +45,6 @@ do {                                                            \
 
 #define FORMAT_SPECIFIERS_STACK   "%d"
 typedef int TYPE_ELEMENT_STACK;
-
-IF_ON_CANARY_PROTECT (const canary_t VALUE_LEFT_CANARY_STACK  = 0xDEDDAD;)
-IF_ON_CANARY_PROTECT(const canary_t VALUE_RIGHT_CANARY_STACK = 0xDEDBED;)
-IF_ON_CANARY_PROTECT  (const canary_t VALUE_LEFT_CANARY_ARRAY  = 0xDEDDED;)
-IF_ON_CANARY_PROTECT (const canary_t VALUE_RIGHT_CANARY_ARRAY = 0xDEDBAD;)
 
 const ssize_t  CAPACITY_MULTIPLIER      = 2;
 const ssize_t  INITIAL_CAPACITY_VALUE   = 1;
