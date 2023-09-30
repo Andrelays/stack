@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <cstdint>
 
 #define STACK_CONSTRUCTOR(stk)                                                          \
 do {                                                                                    \
@@ -17,26 +18,45 @@ do {                                                                            
     stack_constructor(stk);                                                             \
 } while(0)
 
-#define STACK_DUMP(stk)                                                 \
-do {                                                                    \
-    stack_dump(stk, __LINE__, __FILE__, __PRETTY_FUNCTION__);           \
-} while(0)
-
 #define CHECK_ERRORS(stk)                                       \
 do {                                                            \
     if (((stk)->error_code = verify_stack(stk)) != NO_ERROR)    \
         return (stk)->error_code;                               \
 } while(0)
 
+#ifdef CANARY_PROTECT_INCLUDED
+
+    typedef long long canary_t;
+
+    #define IF_ON_CANARY_PROTECT(...)           __VA_ARGS__
+    #define ELSE_IF_OFF_CANARY_PROTECT(...)
+
+
+#else
+
+    #define IF_ON_CANARY_PROTECT(...)
+    #define ELSE_IF_OFF_CANARY_PROTECT(...)     __VA_ARGS__
+
+#endif
+
+#ifdef HASH_PROTECT_INCLUDED
+
+    #define IF_ON_HASH_PROTECT(...)             __VA_ARGS__
+
+#else
+
+    #define IF_ON_HASH_PROTECT(...)
+
+#endif
+
 #define FORMAT_SPECIFIERS_STACK   "%d"
-
 typedef int TYPE_ELEMENT_STACK;
-typedef long long canary_t;
 
-const canary_t VALUE_LEFT_CANARY_STACK  = 100;
-const canary_t VALUE_RIGHT_CANARY_STACK = 200;
-const canary_t VALUE_LEFT_CANARY_ARRAY  = 700;
-const canary_t VALUE_RIGHT_CANARY_ARRAY = 900;
+IF_ON_CANARY_PROTECT (const canary_t VALUE_LEFT_CANARY_STACK  = 0xDEDDAD;)
+IF_ON_CANARY_PROTECT(const canary_t VALUE_RIGHT_CANARY_STACK = 0xDEDBED;)
+IF_ON_CANARY_PROTECT  (const canary_t VALUE_LEFT_CANARY_ARRAY  = 0xDEDDED;)
+IF_ON_CANARY_PROTECT (const canary_t VALUE_RIGHT_CANARY_ARRAY = 0xDEDBAD;)
+
 const ssize_t  CAPACITY_MULTIPLIER      = 2;
 const ssize_t  INITIAL_CAPACITY_VALUE   = 1;
 const int      POISON                   = 192;
@@ -49,14 +69,20 @@ enum errors_code_stack {
     CAPACITY_LESS_THAN_ZERO         = 1 <<  3,
     SIZE_LESS_THAN_ZERO             = 1 <<  4,
     SIZE_NULL_IN_POP                = 1 <<  5,
-    LEFT_CANARY_IN_STACK_CHANGED    = 1 <<  6,
-    RIGHT_CANARY_IN_STACK_CHANGED   = 1 <<  7,
-    LEFT_CANARY_IN_ARRAY_CHANGED    = 1 <<  8,
-    RIGHT_CANARY_IN_ARRAY_CHANGED   = 1 <<  9,
-    STACK_HASH_CHANGED              = 1 << 10,
-    DATA_HASH_CHANGED               = 1 << 11,
-    POINTER_TO_STACK_INFO_IS_NULL   = 1 << 12,
-    POINTER_RETURN_VALUE_POP_NULL   = 1 << 13
+    POINTER_TO_STACK_INFO_IS_NULL   = 1 <<  6,
+    POINTER_RETURN_VALUE_POP_NULL   = 1 <<  7,
+
+    IF_ON_CANARY_PROTECT(
+    LEFT_CANARY_IN_STACK_CHANGED    = 1 <<  8,
+    RIGHT_CANARY_IN_STACK_CHANGED   = 1 <<  9,
+    LEFT_CANARY_IN_ARRAY_CHANGED    = 1 << 10,
+    RIGHT_CANARY_IN_ARRAY_CHANGED   = 1 << 11,
+    )
+
+    IF_ON_HASH_PROTECT(
+    STACK_HASH_CHANGED              = 1 << 12,
+    DATA_HASH_CHANGED               = 1 << 13
+    )
 };
 
 struct stack {
@@ -66,10 +92,12 @@ struct stack {
     ssize_t                         error_code;
     struct debug_info              *info;
     FILE                           *logs_pointer;
-    canary_t                        left_canary;
-    canary_t                        right_canary;
-    long long                       stack_hash;
-    long long                       data_hash;
+
+    IF_ON_CANARY_PROTECT (canary_t left_canary;)
+    IF_ON_CANARY_PROTECT (canary_t right_canary;)
+
+    IF_ON_HASH_PROTECT(uint32_t stack_hash);
+    IF_ON_HASH_PROTECT(uint32_t data_hash);
 };
 
 struct debug_info {

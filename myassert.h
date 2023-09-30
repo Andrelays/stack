@@ -35,7 +35,8 @@ enum errors_code {
     NEGATIVE_VALUE_SIZE_T           = 5,///< Указывает, что указан отрицательный размер size_t
     FAILED_TO_ALLOCATE_DYNAM_MEMOR  = 6,
     COULD_NOT_OPEN_THE_FILE         = 7,
-    COULD_NOT_CLOSE_THE_FILE        = 8
+    COULD_NOT_CLOSE_THE_FILE        = 8,
+    HASH_HAS_BEEN_CHANGED           = 9
 };
 
 
