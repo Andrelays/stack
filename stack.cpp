@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <memory.h>
 
+FILE *Global_logs_pointer = stderr;
+bool Global_color_output = true;
+
 #ifdef INCREASED_LEVEL_OF_PROTECTION
 
     #define ON_INCREASED_LEVEL_OF_PROTECTION(...)   __VA_ARGS__
@@ -44,37 +47,48 @@ do {                                                            \
         return (stk)->error_code;                               \
 } while(0)
 
-IF_ON_CANARY_PROTECT (const canary_t VALUE_LEFT_CANARY_STACK  = 0xDEDDAD);
-IF_ON_CANARY_PROTECT (const canary_t VALUE_RIGHT_CANARY_STACK = 0xDEDBED);
-IF_ON_CANARY_PROTECT (const canary_t VALUE_LEFT_CANARY_ARRAY  = 0xDEDDED);
-IF_ON_CANARY_PROTECT (const canary_t VALUE_RIGHT_CANARY_ARRAY = 0xDEDBAD);
+IF_ON_CANARY_PROTECT
+(
+    const canary_t VALUE_LEFT_CANARY_STACK  = 0xDEDDAD;
+    const canary_t VALUE_RIGHT_CANARY_STACK = 0xDEDBED;
+    const canary_t VALUE_LEFT_CANARY_ARRAY  = 0xDEDDED;
+    const canary_t VALUE_RIGHT_CANARY_ARRAY = 0xDEDBAD;
+)
 
 static ssize_t verify_stack(stack *stk);
 
 static ssize_t check_capacity(stack *stk);
 static ssize_t realloc_data(stack *stk);
+static ssize_t fill_data_poison(stack *stk);
 
-IF_ON_STACK_DUMP(static void stack_dump(stack *stk, ssize_t line, const char *file, const char *func));
-IF_ON_STACK_DUMP(static void print_debug_info(const stack *stk, ssize_t line, const char *file, const char *func));
-IF_ON_STACK_DUMP(static void print_errors(const stack *stk));
+IF_ON_STACK_DUMP
+(
+    static void stack_dump(stack *stk, ssize_t line, const char *file, const char *func);
+    static void print_debug_info(const stack *stk, ssize_t line, const char *file, const char *func);
+    static void print_errors(const stack *stk);
+)
 
 IF_ON_STACK_OK(static void stack_ok(const stack *stk));
 
-IF_ON_CANARY_PROTECT(static canary_t *get_pointer_right_canary(const stack *stk));
-IF_ON_CANARY_PROTECT(static canary_t *get_pointer_left_canary(const stack *stk));
-IF_ON_CANARY_PROTECT(static size_t get_size_data (const stack *stk));
-IF_ON_CANARY_PROTECT(void print_canary(const stack *stk, canary_t canary, canary_t reference_value_canary));
+IF_ON_CANARY_PROTECT
+(
+    static canary_t *get_pointer_right_canary(const stack *stk);
+    static canary_t *get_pointer_left_canary(const stack *stk);
+    static size_t get_size_data (const stack *stk);
+    static void print_canary(const stack *stk, canary_t canary, canary_t reference_value_canary);
+)
 
-IF_ON_HASH_PROTECT(static ssize_t calculate_stack_hash(stack *stk));
-IF_ON_HASH_PROTECT(static uint32_t calculate_hash(void *array, ssize_t size));
+IF_ON_HASH_PROTECT
+(
+    static ssize_t calculate_stack_hash(stack *stk);
+    static uint32_t calculate_hash(void *array, ssize_t size);
+    static bool check_stack_hash(stack *stk);
+    static bool check_data_hash(stack *stk);
+)
 
-IF_ON_HASH_PROTECT(static bool check_stack_hash(stack *stk));
-IF_ON_HASH_PROTECT(static bool check_data_hash(stack *stk));
 
-stack *get_pointer_stack(FILE *logs_pointer)
+stack *get_pointer_stack()
 {
-    MYASSERT(logs_pointer != NULL, NULL_POINTER_PASSED_TO_FUNC, return NULL);
-
     struct stack *stk = (stack *) calloc(1, sizeof(stack));
 
     stk->data           = NULL;
@@ -82,13 +96,18 @@ stack *get_pointer_stack(FILE *logs_pointer)
     stk->capacity       = 0;
     stk->error_code     = NO_ERROR;
     stk->info           = NULL;
-    stk->logs_pointer   = logs_pointer;
 
-    IF_ON_CANARY_PROTECT(stk->left_canary  = VALUE_LEFT_CANARY_STACK);
-    IF_ON_CANARY_PROTECT(stk->right_canary = VALUE_RIGHT_CANARY_STACK);
+    IF_ON_CANARY_PROTECT
+    (
+        stk->left_canary  = VALUE_LEFT_CANARY_STACK;
+        stk->right_canary = VALUE_RIGHT_CANARY_STACK;
+    )
 
-    IF_ON_HASH_PROTECT(stk->stack_hash = 0);
-    IF_ON_HASH_PROTECT(stk->data_hash = 0);
+    IF_ON_HASH_PROTECT
+    (
+        stk->stack_hash = 0;
+        stk->data_hash = 0;
+    )
 
     return stk;
 }
@@ -103,19 +122,17 @@ ssize_t stack_constructor(stack *stk)
     (
         canary_t *array = (canary_t *) calloc(get_size_data(stk), 1);
         MYASSERT(array != NULL, FAILED_TO_ALLOCATE_DYNAM_MEMOR, return POINTER_TO_STACK_DATA_IS_NULL);
+
+        array[0] = VALUE_LEFT_CANARY_ARRAY;
+        stk->data = (TYPE_ELEMENT_STACK *) (array + 1);
+        *get_pointer_right_canary(stk) = VALUE_RIGHT_CANARY_ARRAY;
     )
 
-    ELSE_IF_OFF_CANARY_PROTECT//TODO 1 calloc
+    ELSE_IF_OFF_CANARY_PROTECT
     (
         stk->data = (TYPE_ELEMENT_STACK *) calloc(stk->capacity, sizeof(TYPE_ELEMENT_STACK));
         MYASSERT(stk->data != NULL, FAILED_TO_ALLOCATE_DYNAM_MEMOR, return POINTER_TO_STACK_DATA_IS_NULL);
     )
-
-    IF_ON_CANARY_PROTECT(array[0] = VALUE_LEFT_CANARY_ARRAY);
-
-    IF_ON_CANARY_PROTECT(stk->data = (TYPE_ELEMENT_STACK *) (array + 1));//TODO UNIT
-
-    IF_ON_CANARY_PROTECT(*get_pointer_right_canary(stk) = VALUE_RIGHT_CANARY_ARRAY);
 
     stk->size = 0;
 
@@ -132,9 +149,6 @@ ssize_t stack_destructor(stack *stk)
 
     CHECK_ERRORS(stk);
 
-    stk->size = -1;
-    stk->capacity = -1;
-
     IF_ON_CANARY_PROTECT
     (
         memset(get_pointer_left_canary(stk), POISON, get_size_data(stk));
@@ -146,6 +160,9 @@ ssize_t stack_destructor(stack *stk)
         memset(stk->data, POISON, stk->capacity);
         free(stk->data);
     )
+
+    stk->size = -1;
+    stk->capacity = -1;
 
     stk->data = NULL;
 
@@ -174,7 +191,7 @@ ssize_t push(stack *stk, TYPE_ELEMENT_STACK value)
 
     CHECK_ERRORS(stk);
 
-    return (verify_stack(stk));//TODO CHECK_ERRORS
+    return NO_ERROR;
 }
 
 ssize_t pop(stack *stk, TYPE_ELEMENT_STACK *return_value)
@@ -198,7 +215,9 @@ ssize_t pop(stack *stk, TYPE_ELEMENT_STACK *return_value)
 
     check_capacity(stk);
 
-    return (verify_stack(stk));
+    CHECK_ERRORS(stk);
+
+    return NO_ERROR;
 }
 
 ssize_t check_capacity(stack *stk)
@@ -223,7 +242,9 @@ ssize_t check_capacity(stack *stk)
         realloc_data(stk);
     }
 
-    return (verify_stack(stk));
+    CHECK_ERRORS(stk);
+
+    return NO_ERROR;
 }
 
 ssize_t realloc_data(stack *stk)
@@ -236,6 +257,10 @@ ssize_t realloc_data(stack *stk)
     (
         canary_t *array = (canary_t *) realloc(get_pointer_left_canary(stk), get_size_data (stk));
         MYASSERT(array != NULL, FAILED_TO_ALLOCATE_DYNAM_MEMOR, return 0);
+
+        stk->data = (TYPE_ELEMENT_STACK *) (array + 1);
+
+        *get_pointer_right_canary(stk) = VALUE_RIGHT_CANARY_ARRAY;
     )
 
     ELSE_IF_OFF_CANARY_PROTECT
@@ -244,16 +269,25 @@ ssize_t realloc_data(stack *stk)
         MYASSERT(stk->data != NULL, FAILED_TO_ALLOCATE_DYNAM_MEMOR, return 0);
     )
 
-    IF_ON_CANARY_PROTECT(stk->data = (TYPE_ELEMENT_STACK *) (array + 1));
-
-    IF_ON_CANARY_PROTECT(*get_pointer_right_canary(stk) = VALUE_RIGHT_CANARY_ARRAY);
-
-    for (ssize_t index = stk->size; index < stk->capacity; index++) //FUNC for my_memmset()
-        (stk->data)[index] = POISON;
+    fill_data_poison(stk);
 
     IF_ON_HASH_PROTECT(calculate_stack_hash(stk));
 
-    return (verify_stack(stk));
+    CHECK_ERRORS(stk);
+
+    return NO_ERROR;
+}
+
+ssize_t fill_data_poison(stack *stk)
+{
+    MYASSERT(stk          != NULL, NULL_POINTER_PASSED_TO_FUNC, return POINTER_TO_STACK_IS_NULL);
+    MYASSERT(stk->data    != NULL, NULL_POINTER_PASSED_TO_FUNC, return POINTER_TO_STACK_DATA_IS_NULL);
+    MYASSERT(stk->info    != NULL, NULL_POINTER_PASSED_TO_FUNC, return POINTER_TO_STACK_INFO_IS_NULL);
+
+    for (ssize_t index = stk->size; index < stk->capacity; index++)
+        (stk->data)[index] = POISON;
+
+    return NO_ERROR;
 }
 
 ssize_t verify_stack(stack *stk)
@@ -279,13 +313,19 @@ ssize_t verify_stack(stack *stk)
     SUMMARIZE_ERRORS_(stk->capacity < 0,         CAPACITY_LESS_THAN_ZERO);
     SUMMARIZE_ERRORS_(stk->size     < 0,         SIZE_LESS_THAN_ZERO);
 
-    IF_ON_CANARY_PROTECT(SUMMARIZE_ERRORS_(stk->left_canary               != VALUE_LEFT_CANARY_STACK,  LEFT_CANARY_IN_STACK_CHANGED));
-    IF_ON_CANARY_PROTECT(SUMMARIZE_ERRORS_(stk->right_canary              != VALUE_RIGHT_CANARY_STACK, RIGHT_CANARY_IN_STACK_CHANGED));
-    IF_ON_CANARY_PROTECT(SUMMARIZE_ERRORS_(*get_pointer_left_canary(stk)  != VALUE_LEFT_CANARY_ARRAY,  LEFT_CANARY_IN_ARRAY_CHANGED));
-    IF_ON_CANARY_PROTECT(SUMMARIZE_ERRORS_(*get_pointer_right_canary(stk) != VALUE_RIGHT_CANARY_ARRAY, RIGHT_CANARY_IN_ARRAY_CHANGED));
+    IF_ON_CANARY_PROTECT
+    (
+        SUMMARIZE_ERRORS_(stk->left_canary               != VALUE_LEFT_CANARY_STACK,  LEFT_CANARY_IN_STACK_CHANGED);
+        SUMMARIZE_ERRORS_(stk->right_canary              != VALUE_RIGHT_CANARY_STACK, RIGHT_CANARY_IN_STACK_CHANGED);
+        SUMMARIZE_ERRORS_(*get_pointer_left_canary(stk)  != VALUE_LEFT_CANARY_ARRAY,  LEFT_CANARY_IN_ARRAY_CHANGED);
+        SUMMARIZE_ERRORS_(*get_pointer_right_canary(stk) != VALUE_RIGHT_CANARY_ARRAY, RIGHT_CANARY_IN_ARRAY_CHANGED);
+    )
 
-    IF_ON_HASH_PROTECT(SUMMARIZE_ERRORS_(!check_stack_hash(stk), STACK_HASH_CHANGED));
-    IF_ON_HASH_PROTECT(SUMMARIZE_ERRORS_(!check_data_hash(stk),  DATA_HASH_CHANGED));
+    IF_ON_HASH_PROTECT
+    (
+        SUMMARIZE_ERRORS_(!check_stack_hash(stk), STACK_HASH_CHANGED);
+        SUMMARIZE_ERRORS_(!check_data_hash(stk),  DATA_HASH_CHANGED);
+    )
 
     #undef SUMMARIZE_ERRORS_
 
@@ -310,11 +350,11 @@ IF_ON_STACK_DUMP
 (
     void stack_dump(stack *stk, ssize_t line, const char *file, const char *func)
     {
-        MYASSERT(stk                != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
-        MYASSERT(stk->data          != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
-        MYASSERT(stk->info          != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
-        MYASSERT(stk->logs_pointer  != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
-        MYASSERT(file               != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(stk                 != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(stk->data           != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(stk->info           != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(Global_logs_pointer != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(file                != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
 
         print_errors(stk);
 
@@ -323,22 +363,29 @@ IF_ON_STACK_DUMP
         for (ssize_t index = 0; index < stk->capacity; index++)
         {
             if ((stk->data)[index] == POISON)
-                fprintf(stk->logs_pointer, "\t\t [%ld] = " FORMAT_SPECIFIERS_STACK " (" COLOR_STR(Maroon, "POISON") ") [" COLOR_STR(DarkViolet, "%p") "]\n", index, POISON, stk->data + index);
+            {
+                fprintf(Global_logs_pointer, "\t\t [%ld] = " FORMAT_SPECIFIERS_STACK, index, POISON);
+                COLOR_PRINT(Maroon, "(POISON)", "");
+                COLOR_PRINT(DarkViolet, "[%p]\n", stk->data + index);
+            }
 
             else
-                fprintf(stk->logs_pointer, "\t\t*[%ld] = " FORMAT_SPECIFIERS_STACK " [" COLOR_STR(DarkViolet, "%p") "]\n", index, (stk->data)[index], stk->data + index);
+            {
+                fprintf(Global_logs_pointer, "\t\t*[%ld] = " FORMAT_SPECIFIERS_STACK, index, (stk->data)[index]);
+                COLOR_PRINT(DarkViolet, "[%p]\n", stk->data + index);
+            }
         }
 
         IF_ON_CANARY_PROTECT
         (
-            fprintf(stk->logs_pointer, "\t\t [right_canary] = ");
+            fprintf(Global_logs_pointer, "\t\t [right_canary] = ");
 
             print_canary(stk, *(get_pointer_right_canary(stk)), VALUE_RIGHT_CANARY_ARRAY);
 
-            fprintf(stk->logs_pointer, "[" COLOR_STR(DarkViolet, "%p") "]\n", get_pointer_right_canary(stk));
+            COLOR_PRINT(DarkViolet, "[%p]\n", get_pointer_right_canary(stk));
         )
 
-        fprintf(stk->logs_pointer,  "\t}\n"
+        fprintf(Global_logs_pointer,  "\t}\n"
                                     "}\n\n");
     }
 )
@@ -347,50 +394,46 @@ IF_ON_STACK_DUMP
 (
     void print_debug_info(const stack *stk, ssize_t line, const char *file, const char *func)
     {
-        MYASSERT(stk                != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
-        MYASSERT(stk->data          != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
-        MYASSERT(stk->info          != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
-        MYASSERT(stk->logs_pointer  != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
-        MYASSERT(file               != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(stk                 != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(stk->data           != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(stk->info           != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(Global_logs_pointer != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(file                != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+
+        COLOR_PRINT(MediumBlue, "stack[%p]\n", stk);
+        COLOR_PRINT(BlueViolet, "\"%s\"from %s(%ld) %s\n", stk->info->name, stk->info->file, stk->info->line, stk->info->func);
+        COLOR_PRINT(DarkMagenta, "called from %s(%ld) %s\n", file, line, func);
+
+        fprintf(Global_logs_pointer, "{\n");
 
         IF_ON_CANARY_PROTECT
         (
-            fprintf(stk->logs_pointer,  COLOR_STR(MediumBlue,  "stack[%p]") "\n"
-                                        COLOR_STR(BlueViolet,  "\"%s\"from %s(%ld) %s") "\n"
-                                        COLOR_STR(DarkMagenta, "called from %s(%ld) %s") "\n"
-                                                                "{\n"
-                                                               "\tleft_canary = ",
-                stk, stk->info->name, stk->info->file, stk->info->line, stk->info->func, file, line, func);
-
+            fprintf(Global_logs_pointer, "\tleft_canary = ");
             print_canary(stk, stk->left_canary ,VALUE_LEFT_CANARY_STACK);
-
-            fprintf(stk->logs_pointer,  "\n\tsize = "     COLOR_STR(Orange, "%ld")
-                                        "\n\tcapacity = " COLOR_STR(Crimson, "%ld")
-                                        "\n\tdata["       COLOR_STR(DarkViolet, "%p") "]"
-                                        "\n\tright_canary = ", stk->size, stk->capacity, stk->data);
-
-            print_canary(stk, stk->right_canary ,VALUE_RIGHT_CANARY_STACK);
-
-            fprintf(stk->logs_pointer, "\n\t{\n"
-                                        "\t\t [left_canary] = ");
-
-            print_canary(stk, *(get_pointer_left_canary(stk)), VALUE_LEFT_CANARY_ARRAY);
-
-            fprintf(stk->logs_pointer, "[" COLOR_STR(DarkViolet, "%p") "]\n", get_pointer_left_canary(stk));
         )
 
-        ELSE_IF_OFF_CANARY_PROTECT
+        fprintf(Global_logs_pointer,  "\n\tsize = ");
+        COLOR_PRINT(Orange, "%ld\n", stk->size);
+
+        fprintf(Global_logs_pointer, "\tcapacity = ");
+        COLOR_PRINT(Crimson, "%ld\n", stk->capacity);
+
+        fprintf(Global_logs_pointer, "\tdata");
+        COLOR_PRINT(DarkViolet, "[%p]\n", stk->data);
+
+        IF_ON_CANARY_PROTECT
         (
-            fprintf(stk->logs_pointer,  COLOR_STR(MediumBlue, "stack[%p]") "\n"
-                                        COLOR_STR(BlueViolet, "\"%s\" from %s(%ld) %s") "\n"
-                                        COLOR_STR(DarkMagenta, "called from %s(%ld) %s") "\n"
-                                        "{\n"
-                                        "\tsize = "    COLOR_STR(Orange, "%ld") "\n"
-                                        "\tcapacity =" COLOR_STR(Crimson, "%ld") "\n"
-                                        "\tdata[%p]\n"
-                                        "\t{\n",
-                stk, stk->info->name, stk->info->file, stk->info->line, stk->info->func,
-                file, line, func, stk->size, stk->capacity, stk->data);
+            fprintf(Global_logs_pointer, "\tright_canary = ");
+            print_canary(stk, stk->right_canary ,VALUE_RIGHT_CANARY_STACK);
+        )
+
+        fprintf(Global_logs_pointer, "\n\t{\n");
+
+        IF_ON_CANARY_PROTECT
+        (
+            fprintf(Global_logs_pointer, "\t\t [left_canary] = ");
+            print_canary(stk, *(get_pointer_left_canary(stk)), VALUE_LEFT_CANARY_ARRAY);
+            COLOR_PRINT(DarkViolet, "[%p]\n", get_pointer_left_canary(stk));
         )
     }
 )
@@ -399,21 +442,16 @@ IF_ON_STACK_DUMP
 (
     void print_errors(const stack *stk)
     {
-        MYASSERT(stk               != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
-        MYASSERT(stk->data         != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
-        MYASSERT(stk->info         != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
-        MYASSERT(stk->logs_pointer != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(stk                    != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(stk->data              != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(stk->info              != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(Global_logs_pointer    != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
 
-        #define GET_ERRORS_(error)                                  \
-        do {                                                        \
-            if(stk->error_code & error)                             \
-                fprintf(stk->logs_pointer, "<font color=red>Errors: %s</font>\n",#error);  \
+        #define GET_ERRORS_(error)                                                           \
+        do {                                                                                 \
+            if(stk->error_code & error)                                                      \
+                fprintf(Global_logs_pointer, "<font color=red>Errors: %s</font>\n",#error);  \
         } while(0)
-
-        IF_ON_CANARY_PROTECT (GET_ERRORS_(LEFT_CANARY_IN_STACK_CHANGED));
-        IF_ON_CANARY_PROTECT (GET_ERRORS_(RIGHT_CANARY_IN_STACK_CHANGED));
-        IF_ON_CANARY_PROTECT (GET_ERRORS_(LEFT_CANARY_IN_ARRAY_CHANGED));
-        IF_ON_CANARY_PROTECT (GET_ERRORS_(RIGHT_CANARY_IN_ARRAY_CHANGED));
 
         GET_ERRORS_(POINTER_TO_STACK_IS_NULL);
         GET_ERRORS_(POINTER_TO_STACK_DATA_IS_NULL);
@@ -422,8 +460,19 @@ IF_ON_STACK_DUMP
         GET_ERRORS_(SIZE_LESS_THAN_ZERO);
         GET_ERRORS_(SIZE_NULL_IN_POP);
 
-        IF_ON_HASH_PROTECT (GET_ERRORS_(STACK_HASH_CHANGED));
-        IF_ON_HASH_PROTECT (GET_ERRORS_(DATA_HASH_CHANGED));
+        IF_ON_CANARY_PROTECT
+        (
+            GET_ERRORS_(LEFT_CANARY_IN_STACK_CHANGED);
+            GET_ERRORS_(RIGHT_CANARY_IN_STACK_CHANGED);
+            GET_ERRORS_(LEFT_CANARY_IN_ARRAY_CHANGED);
+            GET_ERRORS_(RIGHT_CANARY_IN_ARRAY_CHANGED);
+        )
+
+        IF_ON_HASH_PROTECT
+        (
+            GET_ERRORS_(STACK_HASH_CHANGED);
+            GET_ERRORS_(DATA_HASH_CHANGED);
+        )
     }
 )
 
@@ -431,19 +480,19 @@ IF_ON_CANARY_PROTECT
 (
     void print_canary(const stack *stk, canary_t canary, canary_t reference_value_canary)
     {
-        MYASSERT(stk                != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
-        MYASSERT(stk->data          != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
-        MYASSERT(stk->info          != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
-        MYASSERT(stk->logs_pointer  != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(stk                  != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(stk->data            != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(stk->info            != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(Global_logs_pointer  != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
 
         if(canary != reference_value_canary)
-            fprintf(stk->logs_pointer, COLOR_STR(Red,"%lld") "(reference_value =" COLOR_STR(Green, "%lld") ") "
-                                       COLOR_STR(Red,"ERROR: INVALID VALUES"),
-                    canary, reference_value_canary);
+            COLOR_PRINT(Red, "%lld", canary);
 
         else
-            fprintf(stk->logs_pointer, COLOR_STR(Green,"%lld") "(reference_value =" COLOR_STR(Green, "%lld") ")",
-                    canary, reference_value_canary);
+            COLOR_PRINT(Green, "%lld", canary);
+
+        fprintf(Global_logs_pointer,"(reference_value =");
+        COLOR_PRINT(Green, "%lld)", reference_value_canary);
     }
 )
 
@@ -451,19 +500,17 @@ IF_ON_STACK_OK
 (
     void stack_ok(const stack *stk)
     {
-        MYASSERT(stk               != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
-        MYASSERT(stk->data         != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
-        MYASSERT(stk->info         != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
-        MYASSERT(stk->logs_pointer != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(stk                 != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(stk->data           != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(stk->info           != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
+        MYASSERT(Global_logs_pointer != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
 
-        fprintf(stk->logs_pointer,   "<font color=LightGray>%s\n"
-                                     "{\n",
-                            stk->info->name);
+        COLOR_PRINT(LightGray,   "%s\n{\n",stk->info->name);
 
         for (ssize_t index = 0; index < stk->size; index++)
-                fprintf(stk->logs_pointer, "\t[%ld] = " FORMAT_SPECIFIERS_STACK "\n", index, (stk->data)[index]);
+                COLOR_PRINT(LightGray, "\t[%ld] = " FORMAT_SPECIFIERS_STACK "\n", index, (stk->data)[index]);
 
-        fprintf(stk->logs_pointer, "}</font>\n\n");
+        COLOR_PRINT(LightGray, "\n}\n\n", "");
     }
 )
 

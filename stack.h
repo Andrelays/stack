@@ -5,7 +5,8 @@
 #include <stdlib.h>
 #include <cstdint>
 
-const char *file_name_logs = NULL;
+extern FILE *Global_logs_pointer;
+extern bool  Global_color_output;
 
 #define STACK_CONSTRUCTOR(stk)                                                          \
 do {                                                                                    \
@@ -82,7 +83,6 @@ struct stack {
     ssize_t                         capacity;
     ssize_t                         error_code;
     struct debug_info              *info;
-    FILE                           *logs_pointer;
 
     IF_ON_CANARY_PROTECT (canary_t left_canary;)
     IF_ON_CANARY_PROTECT (canary_t right_canary;)
@@ -102,7 +102,7 @@ bool check_argc(int argc);
 FILE *check_isopen (const char *file_name, const char *opening_mode);
 bool check_isclose (FILE *file_pointer);
 
-stack *get_pointer_stack(FILE *logs_pointer);
+stack *get_pointer_stack();
 
 ssize_t stack_constructor(stack *stk);
 ssize_t stack_destructor(stack *stk);
