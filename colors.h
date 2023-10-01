@@ -16,5 +16,13 @@
 #define WHITE       "\033[1;37m"
 #define RESET_COLOR "\033[1;0m"
 
-//#define BLACK_STR(str) BLACK str RESET
+#ifdef COLOR_OUTPUT//TODO define Console Output
+        #define COLOR_STR(color, str) "<font color=" #color ">" str "</font>"
+
+#else
+
+    #define COLOR_STR(color, str) str
+
+#endif
+
 #endif // COLORS_H_INCLUDED

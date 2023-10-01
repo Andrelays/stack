@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <cstdint>
 
+const char *file_name_logs = NULL;
+
 #define STACK_CONSTRUCTOR(stk)                                                          \
 do {                                                                                    \
     struct debug_info *info = (debug_info *) calloc(1, sizeof(debug_info));             \

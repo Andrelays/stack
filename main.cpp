@@ -6,10 +6,15 @@ int main(int argc, const char *argv[])
     if(!check_argc(argc))
         return -1;
 
-    const char *file_name_logs = argv[1];
+    file_name_logs = argv[1];//TODO logs
 
     FILE *logs_pointer = check_isopen(file_name_logs, "w");
     MYASSERT(logs_pointer != NULL, COULD_NOT_OPEN_THE_FILE , return COULD_NOT_OPEN_THE_FILE);
+
+    // if(Global_Color_Output) fprintf(logs_pointer, "<font color=%s>", "Red");
+    // fprintf(logs_pointer, "Hello world[%p]", file_name_logs);
+    // if(Global_Color_Output) fprintf(logs_pointer, "</font>\n");
+
 
     stack *stk = get_pointer_stack(logs_pointer);
 

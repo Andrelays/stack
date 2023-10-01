@@ -23,6 +23,12 @@ FILE *check_isopen (const char *file_name, const char *opening_mode)
     if ((file_pointer = fopen (file_name, opening_mode)) == NULL || ferror (file_pointer))
         printf("ERROR! Could not open the file \"%s\"!\n", file_name);
 
+    else
+    {
+        setbuf(file_pointer, NULL);
+        fprintf(file_pointer, "<pre>\n");
+    }
+
     return file_pointer;
 }
 
