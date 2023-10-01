@@ -365,13 +365,16 @@ IF_ON_STACK_DUMP
             if ((stk->data)[index] == POISON)
             {
                 fprintf(Global_logs_pointer, "\t\t [%ld] = " FORMAT_SPECIFIERS_STACK, index, POISON);
+
                 COLOR_PRINT(Maroon, "(POISON)", "");
+
                 COLOR_PRINT(DarkViolet, "[%p]\n", stk->data + index);
             }
 
             else
             {
                 fprintf(Global_logs_pointer, "\t\t*[%ld] = " FORMAT_SPECIFIERS_STACK, index, (stk->data)[index]);
+
                 COLOR_PRINT(DarkViolet, "[%p]\n", stk->data + index);
             }
         }
@@ -401,7 +404,9 @@ IF_ON_STACK_DUMP
         MYASSERT(file                != NULL, NULL_POINTER_PASSED_TO_FUNC, return);
 
         COLOR_PRINT(MediumBlue, "stack[%p]\n", stk);
+
         COLOR_PRINT(BlueViolet, "\"%s\"from %s(%ld) %s\n", stk->info->name, stk->info->file, stk->info->line, stk->info->func);
+
         COLOR_PRINT(DarkMagenta, "called from %s(%ld) %s\n", file, line, func);
 
         fprintf(Global_logs_pointer, "{\n");
@@ -409,6 +414,7 @@ IF_ON_STACK_DUMP
         IF_ON_CANARY_PROTECT
         (
             fprintf(Global_logs_pointer, "\tleft_canary = ");
+
             print_canary(stk, stk->left_canary ,VALUE_LEFT_CANARY_STACK);
         )
 
@@ -424,6 +430,7 @@ IF_ON_STACK_DUMP
         IF_ON_CANARY_PROTECT
         (
             fprintf(Global_logs_pointer, "\tright_canary = ");
+
             print_canary(stk, stk->right_canary ,VALUE_RIGHT_CANARY_STACK);
         )
 
@@ -432,7 +439,9 @@ IF_ON_STACK_DUMP
         IF_ON_CANARY_PROTECT
         (
             fprintf(Global_logs_pointer, "\t\t [left_canary] = ");
+
             print_canary(stk, *(get_pointer_left_canary(stk)), VALUE_LEFT_CANARY_ARRAY);
+
             COLOR_PRINT(DarkViolet, "[%p]\n", get_pointer_left_canary(stk));
         )
     }
@@ -450,7 +459,7 @@ IF_ON_STACK_DUMP
         #define GET_ERRORS_(error)                                                           \
         do {                                                                                 \
             if(stk->error_code & error)                                                      \
-                fprintf(Global_logs_pointer, "<font color=red>Errors: %s</font>\n",#error);  \
+                COLOR_PRINT(Red, "Errors: %s\n", #error);                                    \
         } while(0)
 
         GET_ERRORS_(POINTER_TO_STACK_IS_NULL);
@@ -492,7 +501,10 @@ IF_ON_CANARY_PROTECT
             COLOR_PRINT(Green, "%lld", canary);
 
         fprintf(Global_logs_pointer,"(reference_value =");
-        COLOR_PRINT(Green, "%lld)", reference_value_canary);
+
+        COLOR_PRINT(Green, "%lld", reference_value_canary);
+
+        fprintf(Global_logs_pointer,")");
     }
 )
 

@@ -8,8 +8,8 @@ int main(int argc, const char *argv[])
 
     const char *file_name_logs = argv[1];
 
-    //Global_logs_pointer = check_isopen(file_name_logs, "w");
-    //MYASSERT(Global_logs_pointer != NULL, COULD_NOT_OPEN_THE_FILE , return COULD_NOT_OPEN_THE_FILE);
+    Global_logs_pointer = check_isopen(file_name_logs, "w");
+    MYASSERT(Global_logs_pointer != NULL, COULD_NOT_OPEN_THE_FILE , return COULD_NOT_OPEN_THE_FILE);
 
     stack *stk = get_pointer_stack();
 
@@ -23,14 +23,12 @@ int main(int argc, const char *argv[])
     for (int i = 0; i < 5; i++)
         push(stk, i + 1);
 
-    stk->size = 1000;
-
     for (int i = 0; i < 6; i++)
         pop(stk, &return_value);
 
     stack_destructor(stk);
 
-    //MYASSERT(check_isclose (Global_logs_pointer), COULD_NOT_CLOSE_THE_FILE , return COULD_NOT_CLOSE_THE_FILE);
+    MYASSERT(check_isclose (Global_logs_pointer), COULD_NOT_CLOSE_THE_FILE , return COULD_NOT_CLOSE_THE_FILE);
 
     return 0;
 }

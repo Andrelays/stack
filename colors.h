@@ -31,7 +31,12 @@
 
     #define COLOR_PRINT(color, str, ...)                                        \
      do {                                                                       \
-        fprintf(Global_logs_pointer, color str RESET_COLOR, __VA_ARGS__);       \
+        if(Global_color_output)                                                 \
+            fprintf(Global_logs_pointer, color str RESET_COLOR, __VA_ARGS__);   \
+                                                                                \
+        else                                                                    \
+            fprintf(Global_logs_pointer, str, __VA_ARGS__);                     \
+                                                                                \
     }  while(0)
 
 #else
