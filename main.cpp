@@ -17,9 +17,6 @@ int main(int argc, const char *argv[])
 
     STACK_CONSTRUCTOR(stk);
 
-    for (int i = 0; i < 6; i++)
-        pop(stk, &return_value);
-
     for (int i = 0; i < 5; i++)
         push(stk, i + 1);
 

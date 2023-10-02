@@ -114,7 +114,8 @@ stack *get_pointer_stack()
 
 ssize_t stack_constructor(stack *stk)
 {
-    MYASSERT(stk != NULL, NULL_POINTER_PASSED_TO_FUNC, return 0);
+    MYASSERT(stk          != NULL, NULL_POINTER_PASSED_TO_FUNC, return POINTER_TO_STACK_IS_NULL);
+    MYASSERT(stk->info    != NULL, NULL_POINTER_PASSED_TO_FUNC, return POINTER_TO_STACK_INFO_IS_NULL);
 
     stk->capacity = INITIAL_CAPACITY_VALUE;
 
@@ -196,7 +197,6 @@ ssize_t push(stack *stk, TYPE_ELEMENT_STACK value)
 
 ssize_t pop(stack *stk, TYPE_ELEMENT_STACK *return_value)
 {
-    MYASSERT(return_value != NULL, NULL_POINTER_PASSED_TO_FUNC, return POINTER_RETURN_VALUE_POP_NULL);
     MYASSERT(stk          != NULL, NULL_POINTER_PASSED_TO_FUNC, return POINTER_TO_STACK_IS_NULL);
     MYASSERT(stk->data    != NULL, NULL_POINTER_PASSED_TO_FUNC, return POINTER_TO_STACK_DATA_IS_NULL);
     MYASSERT(stk->info    != NULL, NULL_POINTER_PASSED_TO_FUNC, return POINTER_TO_STACK_INFO_IS_NULL);
@@ -576,7 +576,8 @@ IF_ON_HASH_PROTECT
         IF_ON_CANARY_PROTECT
         (
             stk->stack_hash = calculate_hash(stk, sizeof(*stk));
-            stk->data_hash  = calculate_hash(get_pointer_left_canary(stk), get_size_data(stk));
+            stk->data_hash  = calculate_hash(get_pointer_left_canary(stk), stk->capacity + 3 *sizeof(canary_t) -
+                                                                        ((stk->capacity * sizeof(TYPE_ELEMENT_STACK)) % sizeof(canary_t)));
         )
 
         ELSE_IF_OFF_CANARY_PROTECT
@@ -652,7 +653,8 @@ IF_ON_HASH_PROTECT
 
         IF_ON_CANARY_PROTECT
         (
-            if (stk->data_hash != calculate_hash(get_pointer_left_canary(stk), get_size_data(stk)))
+            if (stk->data_hash != calculate_hash(get_pointer_left_canary(stk), stk->capacity + 3 *sizeof(canary_t) -
+                                                                            ((stk->capacity * sizeof(TYPE_ELEMENT_STACK)) % sizeof(canary_t))))
                 return false;
         )
 
