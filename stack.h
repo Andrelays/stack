@@ -17,8 +17,7 @@ do {                                                                            
     info->file = __FILE__;                                                              \
     info->func = __PRETTY_FUNCTION__;                                                   \
                                                                                         \
-    (*stk).info = info;                                                                 \
-    stack_constructor(stk);                                                             \
+    stack_constructor(stk, info);                                                       \
 } while(0)
 
 #ifdef CANARY_PROTECT_INCLUDED
@@ -97,14 +96,10 @@ struct debug_info {
     const char  *file;
     const char  *func;
 };
-bool check_argc(int argc);
-
-FILE *check_isopen (const char *file_name, const char *opening_mode);
-bool check_isclose (FILE *file_pointer);
 
 stack *get_pointer_stack();
 
-ssize_t stack_constructor(stack *stk);
+ssize_t stack_constructor(stack *stk, debug_info *info);
 ssize_t stack_destructor(stack *stk);
 
 ssize_t push(stack *stk, TYPE_ELEMENT_STACK value);

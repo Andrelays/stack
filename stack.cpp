@@ -1,5 +1,6 @@
 #include "stack.h"
-#include "myassert.h"
+#include "libraries/utilities/myassert.h"
+#include "libraries/utilities/myassert.h"
 #include <stdlib.h>
 #include <memory.h>
 
@@ -112,9 +113,12 @@ stack *get_pointer_stack()
     return stk;
 }
 
-ssize_t stack_constructor(stack *stk)
+ssize_t stack_constructor(stack *stk, debug_info *info)
 {
-    MYASSERT(stk != NULL, NULL_POINTER_PASSED_TO_FUNC, return 0);
+    MYASSERT(stk  != NULL, NULL_POINTER_PASSED_TO_FUNC, return 0);
+    MYASSERT(info != NULL, NULL_POINTER_PASSED_TO_FUNC, return 0);
+
+    stk->info = info;
 
     stk->capacity = INITIAL_CAPACITY_VALUE;
 
@@ -130,7 +134,7 @@ ssize_t stack_constructor(stack *stk)
 
     ELSE_IF_OFF_CANARY_PROTECT
     (
-        stk->data = (TYPE_ELEMENT_STACK *) calloc(stk->capacity, sizeof(TYPE_ELEMENT_STACK));
+        stk->data = (TYPE_ELEMENT_STACK *) calloc((size_t) stk->capacity, sizeof(TYPE_ELEMENT_STACK));
         MYASSERT(stk->data != NULL, FAILED_TO_ALLOCATE_DYNAM_MEMOR, return POINTER_TO_STACK_DATA_IS_NULL);
     )
 
@@ -157,7 +161,7 @@ ssize_t stack_destructor(stack *stk)
 
     ELSE_IF_OFF_CANARY_PROTECT
     (
-        memset(stk->data, POISON, stk->capacity);
+        memset(stk->data, POISON, (size_t) stk->capacity);
         free(stk->data);
     )
 
@@ -265,7 +269,7 @@ ssize_t realloc_data(stack *stk)
 
     ELSE_IF_OFF_CANARY_PROTECT
     (
-        stk->data = (TYPE_ELEMENT_STACK *) realloc(stk->data, stk->capacity * sizeof(TYPE_ELEMENT_STACK));
+        stk->data = (TYPE_ELEMENT_STACK *) realloc(stk->data, (size_t) stk->capacity * sizeof(TYPE_ELEMENT_STACK));
         MYASSERT(stk->data != NULL, FAILED_TO_ALLOCATE_DYNAM_MEMOR, return 0);
     )
 
@@ -296,8 +300,6 @@ ssize_t verify_stack(stack *stk)
     MYASSERT(stk->data    != NULL, NULL_POINTER_PASSED_TO_FUNC, return POINTER_TO_STACK_DATA_IS_NULL);
     MYASSERT(stk->info    != NULL, NULL_POINTER_PASSED_TO_FUNC, return POINTER_TO_STACK_INFO_IS_NULL);
 
-    ON_INCREASED_LEVEL_OF_PROTECTION(MYASSERT(check_stack_hash(stk), HASH_HAS_BEEN_CHANGED, return STACK_HASH_CHANGED));
-
     ssize_t error_code = NO_ERROR;
 
     #define SUMMARIZE_ERRORS_(condition, added_error)   \
@@ -313,18 +315,20 @@ ssize_t verify_stack(stack *stk)
     SUMMARIZE_ERRORS_(stk->capacity < 0,         CAPACITY_LESS_THAN_ZERO);
     SUMMARIZE_ERRORS_(stk->size     < 0,         SIZE_LESS_THAN_ZERO);
 
+    IF_ON_HASH_PROTECT
+    (
+        ON_INCREASED_LEVEL_OF_PROTECTION(MYASSERT(check_stack_hash(stk), HASH_HAS_BEEN_CHANGED, return STACK_HASH_CHANGED));
+
+        SUMMARIZE_ERRORS_(!check_stack_hash(stk), STACK_HASH_CHANGED);
+        SUMMARIZE_ERRORS_(!check_data_hash(stk),  DATA_HASH_CHANGED);
+    )
+
     IF_ON_CANARY_PROTECT
     (
         SUMMARIZE_ERRORS_(stk->left_canary               != VALUE_LEFT_CANARY_STACK,  LEFT_CANARY_IN_STACK_CHANGED);
         SUMMARIZE_ERRORS_(stk->right_canary              != VALUE_RIGHT_CANARY_STACK, RIGHT_CANARY_IN_STACK_CHANGED);
         SUMMARIZE_ERRORS_(*get_pointer_left_canary(stk)  != VALUE_LEFT_CANARY_ARRAY,  LEFT_CANARY_IN_ARRAY_CHANGED);
         SUMMARIZE_ERRORS_(*get_pointer_right_canary(stk) != VALUE_RIGHT_CANARY_ARRAY, RIGHT_CANARY_IN_ARRAY_CHANGED);
-    )
-
-    IF_ON_HASH_PROTECT
-    (
-        SUMMARIZE_ERRORS_(!check_stack_hash(stk), STACK_HASH_CHANGED);
-        SUMMARIZE_ERRORS_(!check_data_hash(stk),  DATA_HASH_CHANGED);
     )
 
     #undef SUMMARIZE_ERRORS_
@@ -366,7 +370,7 @@ IF_ON_STACK_DUMP
             {
                 fprintf(Global_logs_pointer, "\t\t [%ld] = " FORMAT_SPECIFIERS_STACK, index, POISON);
 
-                COLOR_PRINT(Maroon, "(POISON)", "");
+                COLOR_PRINT(Maroon, "(POISON)%s", "");
 
                 COLOR_PRINT(DarkViolet, "[%p]\n", stk->data + index);
             }
@@ -460,7 +464,7 @@ IF_ON_STACK_DUMP
         do {                                                                                 \
             if(stk->error_code & error)                                                      \
                 COLOR_PRINT(Red, "Errors: %s\n", #error);                                    \
-        } while(0)
+            } while(0)
 
         GET_ERRORS_(POINTER_TO_STACK_IS_NULL);
         GET_ERRORS_(POINTER_TO_STACK_DATA_IS_NULL);
@@ -482,6 +486,8 @@ IF_ON_STACK_DUMP
             GET_ERRORS_(STACK_HASH_CHANGED);
             GET_ERRORS_(DATA_HASH_CHANGED);
         )
+
+        //#undef GET_ERRORS_
     }
 )
 
@@ -522,7 +528,7 @@ IF_ON_STACK_OK
         for (ssize_t index = 0; index < stk->size; index++)
                 COLOR_PRINT(LightGray, "\t[%ld] = " FORMAT_SPECIFIERS_STACK "\n", index, (stk->data)[index]);
 
-        COLOR_PRINT(LightGray, "\n}\n\n", "");
+        COLOR_PRINT(LightGray, "\n}\n\n%s", "");
     }
 )
 
