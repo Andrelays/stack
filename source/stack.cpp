@@ -1,6 +1,6 @@
 #include "stack.h"
-#include "libraries/utilities/myassert.h"
-#include "libraries/utilities/myassert.h"
+#include "myassert.h"
+#include "myassert.h"
 #include <stdlib.h>
 #include <memory.h>
 

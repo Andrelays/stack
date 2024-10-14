@@ -1,6 +1,6 @@
 #include "stack.h"
-#include "libraries/utilities/myassert.h"
-#include "libraries/utilities/utilities.h"
+#include "myassert.h"
+#include "utilities.h"
 
 int main(int argc, const char *argv[])
 {
